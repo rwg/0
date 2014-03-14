@@ -23,7 +23,7 @@ GameManager.prototype.setup = function () {
   this.grid         = new Grid(this.size);
 
   this.score        = "\u221E";
-  this.over         = true;
+  this.over         = false;
   this.won          = true;
 
   // Add the initial tiles
