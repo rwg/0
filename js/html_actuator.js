@@ -34,8 +34,10 @@ HTMLActuator.prototype.restart = function () {
 };
 
 HTMLActuator.prototype.clearContainer = function (container) {
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
+  if (container) {
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
   }
 };
 
