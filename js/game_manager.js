@@ -4,8 +4,6 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.scoreManager = new ScoreManager;
   this.actuator     = new Actuator;
 
-  this.startTiles   = 2;
-
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
 
@@ -22,9 +20,9 @@ GameManager.prototype.restart = function () {
 GameManager.prototype.setup = function () {
   this.grid         = new Grid(this.size);
 
-  this.score        = "\u221E";
+  this.score        = 0;
   this.over         = false;
-  this.won          = true;
+  this.won          = false; 
 
   // Add the initial tiles
   this.addStartTiles();
@@ -35,8 +33,18 @@ GameManager.prototype.setup = function () {
 
 // Set up the initial tiles to start the game with
 GameManager.prototype.addStartTiles = function () {
-  for (var i = 0; i < this.startTiles; i++) {
-    this.addRandomTile();
+  var cell1 = this.addRandomTile();
+
+  var start = Math.floor(Math.random() * 4);
+
+  for (var i = start; i < start + 4; i++) {
+    var vector = this.getVector(i % 4);
+    var cell2 = { x: cell1.x + vector.x, y: cell1.y + vector.y };
+
+    if (this.grid.withinBounds(cell2) && this.grid.cellAvailable(cell2)) {
+      this.grid.insertTile(new Tile(cell2, 0));
+      break;
+    }
   }
 };
 
@@ -44,17 +52,22 @@ GameManager.prototype.addStartTiles = function () {
 GameManager.prototype.addRandomTile = function () {
   if (this.grid.cellsAvailable()) {
     var value = 0;
-    var tile = new Tile(this.grid.randomAvailableCell(), value);
+    var cell = this.grid.randomAvailableCell();
+    var tile = new Tile(cell, value);
 
     this.grid.insertTile(tile);
+
+    return cell;
   }
+
+  return null;
 };
 
 // Sends the updated grid to the actuator
 GameManager.prototype.actuate = function () {
-  //if (this.scoreManager.get() < this.score) {
+  if (this.scoreManager.get() !== "\u221E") {
     this.scoreManager.set(this.score);
-  //}
+  }
 
   this.actuator.actuate(this.grid, {
     score:     this.score,
@@ -119,11 +132,9 @@ GameManager.prototype.move = function (direction) {
           // Converge the two tiles' positions
           tile.updatePosition(positions.next);
 
-          // Update the score
-          self.score += merged.value;
-
-          // The mighty 0 tile
-          if (merged.value === 0) self.won = true;
+          // A WINNER IS YOU!
+          self.score = "\u221E";
+          self.won = true;
         } else {
           self.moveTile(tile, positions.farthest);
         }
@@ -136,10 +147,8 @@ GameManager.prototype.move = function (direction) {
   });
 
   if (moved) {
-    this.addRandomTile();
-
-    if (!this.movesAvailable()) {
-      this.over = true; // Game over!
+    if (!self.won) {
+      this.over = true; // srsly?
     }
 
     this.actuate();
