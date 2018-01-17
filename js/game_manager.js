@@ -33,34 +33,14 @@ GameManager.prototype.setup = function () {
 
 // Set up the initial tiles to start the game with
 GameManager.prototype.addStartTiles = function () {
-  var cell1 = this.addRandomTile();
+  var cell1 = this.grid.randomAvailableCell();
+  this.grid.insertTile(new Tile(cell1, 0));
 
-  var start = Math.floor(Math.random() * 4);
+  do {
+    var cell2 = this.grid.randomAvailableCell();
+  } while (!(cell1.x === cell2.x || cell1.y === cell2.y));
 
-  for (var i = start; i < start + 4; i++) {
-    var vector = this.getVector(i % 4);
-    var cell2 = { x: cell1.x + vector.x, y: cell1.y + vector.y };
-
-    if (this.grid.withinBounds(cell2) && this.grid.cellAvailable(cell2)) {
-      this.grid.insertTile(new Tile(cell2, 0));
-      break;
-    }
-  }
-};
-
-// Adds a tile in a random position
-GameManager.prototype.addRandomTile = function () {
-  if (this.grid.cellsAvailable()) {
-    var value = 0;
-    var cell = this.grid.randomAvailableCell();
-    var tile = new Tile(cell, value);
-
-    this.grid.insertTile(tile);
-
-    return cell;
-  }
-
-  return null;
+  this.grid.insertTile(new Tile(cell2, 0));
 };
 
 // Sends the updated grid to the actuator
